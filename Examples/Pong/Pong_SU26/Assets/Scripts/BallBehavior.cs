@@ -2,25 +2,40 @@ using UnityEngine;
 
 public class BallBehavior : MonoBehaviour
 {
-    public float Speed = 7.0f;
+    [SerializeField] private float _launchForce = 7.0f;
+    [SerializeField] private float _speedIncrement = 1.1f;
     
-    private int _xDirection;
-    private int _yDirection;
+    private Rigidbody2D _rb;
+    [SerializeField, Range(0.0f, 1.0f)] private float _paddleInfluence = 0.4f;
     
     void Start()
     {
-        // Probability: 50/50 chance of positive vs. negative
-        // Ternary operator: condition ? pass : fails
-        _xDirection = Random.value < 0.5f ? 1 : -1;
-        _yDirection = Random.value < 0.5f ? 1 : -1;
+        _rb = GetComponent<Rigidbody2D>();
+        
+        // Make sure that direction has a vector length of 1
+        Vector2 direction = Random.insideUnitCircle.normalized;
+
+        if (Mathf.Abs(direction.y) < 0.4f)
+        {
+            direction.y += 0.4f * Mathf.Sign(direction.y);
+        }
+        
+        _rb.AddForce(direction * _launchForce, ForceMode2D.Impulse);
     }
-    
-    void Update()
+
+    private void OnCollisionEnter2D(Collision2D other)
     {
-        transform.Translate(new Vector3(
-            Speed * _xDirection,
-            Speed * _yDirection,
-            0.0f
-        ) * Time.deltaTime);
+        if (other.gameObject.CompareTag("Paddle"))
+        {
+            // Check if the paddle is moving
+            if (!Mathf.Approximately(other.rigidbody.linearVelocity.y, 0.0f))
+            {
+                // Weighted sum using one-minus to calculate weights
+                Vector2 direction = _rb.linearVelocity * (1.0f - _paddleInfluence)
+                                    + other.rigidbody.linearVelocity * _paddleInfluence;
+                
+                _rb.linearVelocity = _rb.linearVelocity.magnitude * direction.normalized * _speedIncrement;
+            }
+        }
     }
 }
