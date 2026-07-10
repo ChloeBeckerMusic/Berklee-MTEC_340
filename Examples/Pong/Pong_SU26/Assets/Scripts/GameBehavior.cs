@@ -1,15 +1,32 @@
-using System;
 using UnityEngine;
+using TMPro;
 
 public class GameBehavior : MonoBehaviour
 {
     // Both instance and access point
     public static GameBehavior Instance;
+
+    private Utilities.GameState _state;
+    public Utilities.GameState State
+    {
+        get => _state;
+
+        set
+        {
+            _state = value;
+            
+            _message.enabled = State == Utilities.GameState.Pause;
+        }
+    }
+    
+    [SerializeField] private TMP_Text _message;
     
     [SerializeField] Player[] _players = new Player[2];
     [SerializeField] private int _targetScore = 3;
     
     [SerializeField] private GameObject _ballPrefab;
+
+    private float _durationBetweenPoints = 1.0f;
 
     private void Awake()
     {
@@ -29,6 +46,20 @@ public class GameBehavior : MonoBehaviour
     private void Start()
     {
         ResetGame();
+
+        // Set initial state
+        State = Utilities.GameState.Play;
+    }
+
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.P))
+        {
+            // Ternary operator
+            State = State == Utilities.GameState.Play ?     // Condition
+                Utilities.GameState.Pause :                 // Passing
+                Utilities.GameState.Play;                   // Failing
+        }
     }
 
     private void ResetGame()
@@ -64,6 +95,7 @@ public class GameBehavior : MonoBehaviour
             }
         }
         
-        SpawnBall();
+        // Apply a delay when a player scores to give respite
+        Invoke(nameof(SpawnBall), _durationBetweenPoints);
     }
 }
