@@ -4,7 +4,7 @@ using Vector2 = UnityEngine.Vector2;
 
 public class BallBehavior : MonoBehaviour
 {
-    [SerializeField] private float _launchForce = 7.0f;
+     private float _launchForce = 7.0f;
     [SerializeField] private float _speedIncrement = 1.1f;
 
     private float _steepnessThresholdY = 0.75f;
